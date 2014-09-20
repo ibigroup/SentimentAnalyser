@@ -165,7 +165,6 @@ function getSearchData(req, res, next){
 var server = restify.createServer();
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
-server.get('/tweets', getTweets);
 server.get('/search',getSearchData)
 server.get('/start', start);
 server.get('/stop', stop);
