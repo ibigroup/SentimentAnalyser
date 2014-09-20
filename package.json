@@ -1,22 +1,25 @@
 {
-  "name": "WebMatrixNodeJsSite",
+  "name": "SentimentAnalyser",
   "version": "0.1.0",
-  "author": "The WebMatrix Team <webmatrix@microsoft.com>",
-  "description": "A simple boilerplate for building node applications on Windows Azure (or wherever)",
-  "contributors": [ 
+  "description": "Web API for pasring given text using Sentiment.",
+  "contributors": [
     {
-      "name": "Justin Beckwith",
-      "email": "justbe@microsoft.com"
-    } 
-  ],  
-  "main": "./server.js",  
+      "name": "Kevin Wilson",
+      "email": "kwilson@ibigroup.com"
+    }
+  ],
+  "main": "./server.js",
   "keywords": [
     "azure",
     "boilerplate"
-  ],  
+  ],
   "noAnalyze": true,
   "license": "Apache",
   "engines": {
     "node": ">=0.6.14"
+  },
+  "dependencies": {
+    "restify": "~2.8.2",
+    "sentiment": "~1.0.2"
   }
 }
