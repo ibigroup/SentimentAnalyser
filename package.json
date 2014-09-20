@@ -1,7 +1,7 @@
 {
   "name": "SentimentAnalyser",
   "version": "0.1.0",
-  "description": "Web API for pasring given text using Sentiment.",
+  "description": "Web API for parsing given text using Sentiment.",
   "contributors": [
     {
       "name": "Kevin Wilson",
