@@ -3,6 +3,7 @@ var restify = require('restify');
 var sentiment = require('sentiment');
 
 function formatResponse(response) {
+    // Dump some of the return data to keep the response small.
     return {
         score: response.score,
         positive: response.positive,
@@ -10,8 +11,19 @@ function formatResponse(response) {
     };
 }
 
+function cleanContent(content) {
+    if (!content) {
+        return "";
+    }
+
+    // replace underscores with spaces
+    return content.replace(/_/g, ' ');
+}
+
 function respond(req, res, next) {
-    var result = sentiment(req.params.content);
+    var text = cleanContent(req.params.content);
+    console.log(text);
+    var result = sentiment(text);
     res.send(formatResponse(result));
     next();
 }
