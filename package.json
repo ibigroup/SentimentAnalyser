@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "restify": "~2.8.2",
-    "sentiment": "~1.0.2"
+    "sentiment": "~1.0.2",
+    "twitter": "~0.2.12",
+    "util": "~0.10.3"
   }
 }
