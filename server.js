@@ -62,7 +62,6 @@ function startLiveStream(onDataHandler, onStart) {
 function start(req, res, next) {
     var dataHandler = function (data) {
         var model = formatTweet(data);
-        //console.log(model);
         io.emit('livetweet', model);
     };
 
