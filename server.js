@@ -22,22 +22,17 @@ function cleanContent(content) {
 
 function respond(req, res, next) {
     var text = cleanContent(req.params.content);
-    console.log(text);
     var result = sentiment(text);
+
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
     res.send(formatResponse(result));
+
     next();
 }
 
 var server = restify.createServer();
 server.get('/q/:content', respond);
-
-server.use(
-    function crossOrigin(req,res,next){
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "X-Requested-With");
-        return next();
-    }
-);
 
 server.listen(process.env.PORT || 8080, function() {
     console.log('%s listening at %s', server.name, server.url);
