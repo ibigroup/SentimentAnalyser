@@ -71,7 +71,9 @@ function getRandomInt(min, max) {
 
 function getTestData(req, res, next) {
     var dataPoints = [];
-   
+    
+    
+
     for (var i = 0; i < 100; i++) {
         var point = {
             id: getRandomInt(0, 10000000),
@@ -102,10 +104,33 @@ function getTestData(req, res, next) {
     res.send(model);
 }
 
+function getSearchData(req, res, next){
+     var dataPoints = [];
+
+     twit.search('#indyref', function(data) {
+        console.log(data.statuses.length);
+        for (var i = 0; i < data.statuses.length; i++) {
+            var item = data.statuses[i];
+            console.log(item);
+            if(item.coordinates !== null){
+                var point = {
+                id: item.id,
+                loc: item.coordinates.coordinates,
+                mood: getRandomInt(-3, 3)
+                }
+                dataPoints.push(point);
+            }                        
+        };            
+        console.log(util.inspect(dataPoints));
+        res.send(dataPoints);
+    })    
+}
+
 var server = restify.createServer();
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
 server.get('/tweets', getTweets);
+server.get('/search',getSearchData)
 
 server.listen(process.env.PORT || 8080, function() {
     console.log('%s listening at %s', server.name, server.url);
