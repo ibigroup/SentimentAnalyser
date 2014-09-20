@@ -142,27 +142,42 @@ function getTestData(req, res, next) {
 
 function getSearchData(req, res, next){
      var dataPoints = [];
+     var searchText = req.params.searchParamaters;
 
-     twit.search(req.params.searchParamaters, function(data) {
-        console.log(data.statuses.length);
-        for (var i = 0; i < data.statuses.length; i++) {
-            var item = data.statuses[i];
-            console.log(item);
-            if(item.coordinates){
-                var point = createPoint(item);
-                dataPoints.push(point);
-            }            
-        };           
-        console.log(util.inspect(dataPoints));
-        res.send(dataPoints);
-    })    
+     var searchParams = {
+         count: 100
+     };
+
+     if (req.params.lat && req.params.lng) {
+         searchParams.geocode = req.params.lat + ',' + req.params.lng + ',2km'
+     }
+
+     twit.search(searchText, searchParams, function (data) {
+         for (var i = 0; i < data.statuses.length; i++) {
+             var item = data.statuses[i];
+
+             var point = createPoint(item);
+             if (!point.loc && req.params.lat && req.params.lng) {
+                 point.loc = [parseFloat(req.params.lat), parseFloat(req.params.lng)];
+             }
+
+             if (point.loc) {
+                 dataPoints.push(point);
+             }
+         };
+
+         res.send(dataPoints);
+     })    
 }
 
 function createPoint(item){
     var point = {
         id: item.id,
-        loc: item.coordinates.coordinates,
-        mood: getRandomInt(-3, 3)
+        mood: sentiment(item.text).score
+    }
+
+    if (item.coordinates && item.coordinates.coordinates) {
+        point.loc = item.coordinates.coordinates;
     }
 
     return point;
@@ -171,7 +186,7 @@ function createPoint(item){
 var server = restify.createServer();
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
-server.get('/search/:searchParamaters',getSearchData);
+server.get('/search/:searchParamaters/:lat/:lng',getSearchData);
 server.get('/start', start);
 server.get('/stop', stop);
 io = socketio.listen(server.server);
