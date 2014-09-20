@@ -147,6 +147,10 @@ io.sockets.on('connection', function (socket) {
     });
 });
 
+setInterval(function () {
+    io.emit('clock', { date: new Date() } );
+}, 1000);
+
 server.listen(process.env.PORT || 8080, function() {
     console.log('%s listening at %s', server.name, server.url);
 });
