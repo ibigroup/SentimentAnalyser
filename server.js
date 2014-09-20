@@ -3,6 +3,7 @@ var restify = require('restify');
 var sentiment = require('sentiment');
 var twitter = require('twitter');
 var twitterConf = require('./twitterconf');
+var conf = require('./conf');
 
 var util = require('util'),
     twitter = require('twitter');
@@ -13,6 +14,8 @@ var twit = new twitter({
     access_token_key: process.env.access_token_key || twitterConf.access_token_key,
     access_token_secret: process.env.access_token_secret || twitterConf.access_token_secret
 });
+
+var liveStreamContext;
 
 function formatResponse(response) {
     // Dump some of the return data to keep the response small.
@@ -32,22 +35,47 @@ function cleanContent(content) {
     return content.replace(/_/g, ' ');
 }
 
-function getTweets(req, res, next) {
-    console.log(twitterConf);
-    twit.stream('filter', { track: 'glasgow' }, function (stream) {
-        stream.on('data', function (data) {
-            //console.log(util.inspect(data));
+function formatTweet(tweet) {
+    var id = tweet.id;
+    var mood = sentiment(tweet.text);
+    var location = tweet.geo.coordinates;
 
-            var tweetText = data.text;
-            var mood = sentiment(tweetText);
-            res.send("score: " + mood.score + ": " + tweetText);
-        });
+    return {
+        id: id,
+        mood: formatResponse(mood),
+        loc: location
+    };
+}
 
-        setTimeout(function () {
-            res.send("~ fin ~");
-            stream.destroy();
-        }, 10000);
+function startLiveStream(onDataHandler, onStart) {
+    twit.stream('filter', { locations: conf.liveStream.bounding }, function (stream) {
+        stream.on('data', onDataHandler);
+
+        if (onStart) {
+            onStart(stream);
+        }
     });
+}
+
+function start(req, res, next) {
+    var dataHandler = function (data) {
+        var model = formatTweet(data);
+        console.log(model);
+    };
+
+    startLiveStream(dataHandler, function (pointer) {
+        liveStreamContext = pointer;
+        res.send("Started");
+    });
+}
+
+function stop(req, res, next) {
+    if (liveStreamContext) {
+        liveStreamContext.destroy();
+        res.send("Stopped");
+    }
+
+    res.send("Not running.");
 }
 
 function respond(req, res, next) {
@@ -105,7 +133,8 @@ function getTestData(req, res, next) {
 var server = restify.createServer();
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
-server.get('/tweets', getTweets);
+server.get('/start', start);
+server.get('/stop', stop);
 
 server.listen(process.env.PORT || 8080, function() {
     console.log('%s listening at %s', server.name, server.url);
