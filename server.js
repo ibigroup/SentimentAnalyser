@@ -3,6 +3,8 @@ var restify = require('restify');
 var sentiment = require('sentiment');
 var twitter = require('twitter');
 var twitterConf = require('./twitterconf');
+var conf = require('./conf');
+var socketio = require('socket.io');
 
 var util = require('util'),
     twitter = require('twitter');
@@ -14,10 +16,21 @@ var twit = new twitter({
     access_token_secret: process.env.access_token_secret || twitterConf.access_token_secret
 });
 
+var liveStreamContext,
+    io;
+
 function formatResponse(response) {
+    // Restrict score from -3 to 3
+    var score = response.score;
+    if (score < -3) {
+        score = -3;
+    } else if (score > 3) {
+        score = 3;
+    }
+
     // Dump some of the return data to keep the response small.
     return {
-        score: response.score,
+        score: score,
         positive: response.positive,
         negative: response.negative
     };
@@ -32,22 +45,47 @@ function cleanContent(content) {
     return content.replace(/_/g, ' ');
 }
 
-function getTweets(req, res, next) {
-    console.log(twitterConf);
-    twit.stream('filter', { track: 'glasgow' }, function (stream) {
-        stream.on('data', function (data) {
-            //console.log(util.inspect(data));
+function formatTweet(tweet) {
+    var id = tweet.id;
+    var mood = sentiment(tweet.text);
+    var location = tweet.geo.coordinates;
 
-            var tweetText = data.text;
-            var mood = sentiment(tweetText);
-            res.send("score: " + mood.score + ": " + tweetText);
-        });
+    return {
+        id: id,
+        mood: formatResponse(mood),
+        loc: location
+    };
+}
 
-        setTimeout(function () {
-            res.send("~ fin ~");
-            stream.destroy();
-        }, 10000);
+function startLiveStream(onDataHandler, onStart) {
+    twit.stream('filter', { locations: conf.liveStream.bounding }, function (stream) {
+        stream.on('data', onDataHandler);
+
+        if (onStart) {
+            onStart(stream);
+        }
     });
+}
+
+function start(req, res, next) {
+    var dataHandler = function (data) {
+        var model = formatTweet(data);
+        io.emit('livetweet', model);
+    };
+
+    startLiveStream(dataHandler, function (pointer) {
+        liveStreamContext = pointer;
+        res.send("Started");
+    });
+}
+
+function stop(req, res, next) {
+    if (liveStreamContext) {
+        liveStreamContext.destroy();
+        res.send("Stopped");
+    }
+
+    res.send("Not running.");
 }
 
 function respond(req, res, next) {
@@ -71,8 +109,6 @@ function getRandomInt(min, max) {
 
 function getTestData(req, res, next) {
     var dataPoints = [];
-    
-    
 
     for (var i = 0; i < 100; i++) {
         var point = {
@@ -84,21 +120,21 @@ function getTestData(req, res, next) {
         dataPoints.push(point);
     }
 
-        var model = {
-            name: "Birmingham",
-            mood: getRandomInt(-3, 3),
-            distribution: {
-                "3": getRandomInt(0, 100),
-                "2": getRandomInt(0, 100),
-                "1": getRandomInt(0, 100),
-                "0": getRandomInt(0, 100),
-                "-1": getRandomInt(0, 100),
-                "-2": getRandomInt(0, 100),
-                "-3": getRandomInt(0, 100)
-            },
-            points: dataPoints
-        };
-        
+    var model = {
+        name: "Birmingham",
+        mood: getRandomInt(-3, 3),
+        distribution: {
+            "3": getRandomInt(0, 100),
+            "2": getRandomInt(0, 100),
+            "1": getRandomInt(0, 100),
+            "0": getRandomInt(0, 100),
+            "-1": getRandomInt(0, 100),
+            "-2": getRandomInt(0, 100),
+            "-3": getRandomInt(0, 100)
+        },
+        points: dataPoints
+    };
+
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     res.send(model);
@@ -131,6 +167,11 @@ server.get('/q/:content', respond);
 server.get('/test', getTestData);
 server.get('/tweets', getTweets);
 server.get('/search',getSearchData)
+server.get('/start', start);
+server.get('/stop', stop);
+io = socketio.listen(server.server);
+io.set( 'origins', '*:*' );
+
 
 server.listen(process.env.PORT || 8080, function() {
     console.log('%s listening at %s', server.name, server.url);
