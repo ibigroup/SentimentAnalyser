@@ -180,7 +180,9 @@ function getSearchData(req, res, next){
              distribution: distribution,
              points: dataPoints
          };
-
+         
+         res.header("Access-Control-Allow-Origin", "*");
+         res.header("Access-Control-Allow-Headers", "X-Requested-With");
          res.send(model);
      })    
 }
