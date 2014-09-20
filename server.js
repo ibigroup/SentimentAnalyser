@@ -41,11 +41,10 @@ function getRandomInt(min, max) {
 
 function getTestData(req, res, next) {
     var dataPoints = [];
-    var count = req.params.dataPoints || 100;
    
     // (52.495820 , -1.912715)
     // (52.477893 , -1.863663)
-    for (var i = 0; i < count; i++) {
+    for (var i = 0; i < 100; i++) {
         var point = {
             id: getRandomInt(0, 10000000),
             loc: [getRandomArbitrary(52.477893, 52.495820), getRandomArbitrary(-1.912715, -1.863663)],
@@ -77,7 +76,7 @@ function getTestData(req, res, next) {
 
 var server = restify.createServer();
 server.get('/q/:content', respond);
-server.get('/test/:dataPoints', getTestData);
+server.get('/test', getTestData);
 
 server.listen(process.env.PORT || 8080, function() {
     console.log('%s listening at %s', server.name, server.url);
