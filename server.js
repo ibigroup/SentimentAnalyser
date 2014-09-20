@@ -153,6 +153,9 @@ function getSearchData(req, res, next){
      }
 
      twit.search(searchText, searchParams, function (data) {
+         var totalMood = 0,
+         distribution = {};
+
          for (var i = 0; i < data.statuses.length; i++) {
              var item = data.statuses[i];
 
@@ -163,10 +166,22 @@ function getSearchData(req, res, next){
 
              if (point.loc) {
                  dataPoints.push(point);
+                 totalMood += point.mood;
+
+                 var valueText = "" + point.mood;
+                 distribution[valueText] = distribution[valueText] || 0;
+                 distribution[valueText] += 1;
              }
          };
 
-         res.send(dataPoints);
+         var averageMood = totalMood / dataPoints.length;
+         var model = {
+             mood: averageMood,
+             distribution: distribution,
+             points: dataPoints
+         };
+
+         res.send(model);
      })    
 }
 
