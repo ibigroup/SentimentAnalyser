@@ -20,9 +20,17 @@ var liveStreamContext,
     io;
 
 function formatResponse(response) {
+    // Restrict score from -3 to 3
+    var score = response.score;
+    if (score < -3) {
+        score = -3;
+    } else if (score > 3) {
+        score = 3;
+    }
+
     // Dump some of the return data to keep the response small.
     return {
-        score: response.score,
+        score: score,
         positive: response.positive,
         negative: response.negative
     };
