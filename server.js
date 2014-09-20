@@ -194,7 +194,7 @@ function createPoint(item){
     }
 
     if (item.coordinates && item.coordinates.coordinates) {
-        point.loc = item.coordinates.coordinates;
+        point.loc = [item.coordinates.coordinates[1], item.coordinates.coordinates[0]];
     }
 
     return point;
