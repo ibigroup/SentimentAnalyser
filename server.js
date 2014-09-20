@@ -140,16 +140,6 @@ server.get('/stop', stop);
 
 io = socketio.listen(server.server);
 io.set( 'origins', '*:*' );
-io.sockets.on('connection', function (socket) {
-    socket.emit('livetweet', { hello: 'world' });
-    socket.on('my other event', function (data) {
-        console.log(data);
-    });
-});
-
-setInterval(function () {
-    io.emit('clock', { date: new Date() } );
-}, 1000);
 
 server.listen(process.env.PORT || 8080, function() {
     console.log('%s listening at %s', server.name, server.url);
