@@ -143,30 +143,35 @@ function getTestData(req, res, next) {
 function getSearchData(req, res, next){
      var dataPoints = [];
 
-     twit.search('#indyref', function(data) {
+     twit.search(req.params.searchParamaters, function(data) {
         console.log(data.statuses.length);
         for (var i = 0; i < data.statuses.length; i++) {
             var item = data.statuses[i];
             console.log(item);
-            if(item.coordinates !== null){
-                var point = {
-                id: item.id,
-                loc: item.coordinates.coordinates,
-                mood: getRandomInt(-3, 3)
-                }
+            if(item.coordinates){
+                var point = createPoint(item);
                 dataPoints.push(point);
-            }                        
-        };            
+            }            
+        };           
         console.log(util.inspect(dataPoints));
         res.send(dataPoints);
     })    
 }
 
+function createPoint(item){
+    var point = {
+        id: item.id,
+        loc: item.coordinates.coordinates,
+        mood: getRandomInt(-3, 3)
+    }
+
+    return point;
+}
+
 var server = restify.createServer();
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
-server.get('/tweets', getTweets);
-server.get('/search',getSearchData)
+server.get('/search/:searchParamaters',getSearchData);
 server.get('/start', start);
 server.get('/stop', stop);
 io = socketio.listen(server.server);
