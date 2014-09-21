@@ -260,6 +260,9 @@ function twilioIncoming(req, res, next) {
     texter.parseSms(req, function (message) {
         textHandler(message, function (resp) {
 
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
             res.writeHead(200, {
                 'Content-Type': 'text/xml'
             });
