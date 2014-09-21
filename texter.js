@@ -21,34 +21,11 @@ var sendText = function (number, content, callback) {
 };
 
 var parseSms = function (req, res) {
-    var outputNumber = process.env.debugOutputNumber;
+    var resp = new twilio.TwimlResponse();
+    resp.say({ voice: 'woman' }, 'ahoy hoy! Testing Twilio and node.js');
 
-    //Validate that this request really came from Twilio...
-    if (twilio.validateExpressRequest(req, authToken)) {
-        var twiml = new twilio.TwimlResponse();
-        twiml.say('Hi!  Thanks for checking out my app!');
-
-        
-    if (outputNumber) {
-        sendText(outputNumber, "Hello mum success!");
-    }
-
-        res.type('text/xml');
-        res.send(twiml.toString());
-    }
-    else {
-        // res.send('you are not twilio.  Buzz off.');
-        var twiml = new twilio.TwimlResponse();
-        twiml.say('Not recongised.');
-
-        
-    if (outputNumber) {
-        sendText(outputNumber, "Hello mum fail!");
-    }
-
-        res.type('text/xml');
-        res.send(twiml.toString());
-    }
+    res.setHeader('content-type', 'text/xml');
+    res.send(resp.toString());
 };
 
 module.exports = {

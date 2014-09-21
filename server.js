@@ -208,7 +208,7 @@ function twilioIncoming(req, res, next) {
 }
 
 var server = restify.createServer();
-// server.use(restify.bodyParser());
+server.use(restify.bodyParser());
 
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
