@@ -225,7 +225,7 @@ var parseMood = function (value) {
 
 var textHandler = function (message, callback) {
     for (var i = 0; i <= splitterWords.length; i++) {
-        var splitter = " " + splitterWords[i] + " ";
+        var splitter = "+" + splitterWords[i] + "+";
         if (message.indexOf(splitter) > 0) {
 
             var parts = message.split(splitter);
@@ -243,6 +243,8 @@ var textHandler = function (message, callback) {
             return;
         }
     }
+
+    texter.formatReply("Sorry, incorrect format.", callback);
 };
 
 function twilioIncoming(req, res, next) {
