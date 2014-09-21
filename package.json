@@ -24,6 +24,7 @@
     "twitter": "~0.2.12",
     "util": "~0.10.3",
     "socket.io": "~1.1.0",
-    "twilio": "~1.7.0"
+    "twilio": "~1.7.0",
+    "superagent": "~0.18.2"
   }
 }

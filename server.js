@@ -6,6 +6,7 @@ var twitterConf = require('./twitterconf');
 var conf = require('./conf');
 var socketio = require('socket.io');
 var texter = require('./texter');
+var request = require('superagent');
 
 var util = require('util'),
     twitter = require('twitter');
@@ -225,13 +226,18 @@ function createPoint(item){
 var splitterWords = ["in", "about"];
 
 var resolveLocation = function (location, callback) {
-    // var requestUrl = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&sensor=false";
-    var latLng = {
-        lat: 52.48624299999999,
-        lng: -1.890401
-    };
+    var requestUrl = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&sensor=false";
 
-    callback(latLng);
+    request
+    .get(requestUrl)
+    .set('Accept', 'application/json')
+    .end(function (err, res) {
+        var data = JSON.parse(res.text);
+        if (data.results && data.results.length > 0) {
+            var location = data.results[0].geometry.location;
+            callback(location);
+        }
+    });
 };
 
 var textHandler = function (message, callback) {
