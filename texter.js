@@ -22,7 +22,7 @@ var sendText = function (number, content, callback) {
 
 var parseSms = function (req, callback) {
     var resp = new twilio.TwimlResponse();
-    resp.say({ voice: 'woman' }, 'ahoy hoy! Testing Twilio and node.js');
+    resp.message('m:' + req.body);
 
     if (callback) {
         callback(resp);
