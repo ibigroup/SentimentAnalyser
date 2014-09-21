@@ -20,12 +20,13 @@ var sendText = function (number, content, callback) {
     });
 };
 
-var parseSms = function (req, res) {
+var parseSms = function (req, callback) {
     var resp = new twilio.TwimlResponse();
     resp.say({ voice: 'woman' }, 'ahoy hoy! Testing Twilio and node.js');
 
-    res.setHeader('content-type', 'text/xml');
-    res.send(resp);
+    if (callback) {
+        callback(resp);
+    }    
 };
 
 module.exports = {

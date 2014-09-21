@@ -204,7 +204,12 @@ function createPoint(item){
 }
 
 function twilioIncoming(req, res, next) {
-    texter.parseSms(req, res);
+    texter.parseSms(req, function (resp) {
+        res.setHeader('content-type', 'text/xml');
+        res.send(resp);
+
+        next();
+    });
 }
 
 var server = restify.createServer();
