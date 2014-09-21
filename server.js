@@ -107,7 +107,7 @@ function doSearch(searchText, latLng, callback) {
      };
 
     if (latLng) {
-         searchParams.geocode = latLng.lat + ',' + latLng.lng + ',5km'
+         searchParams.geocode = latLng.lat + ',' + latLng.lng + ',skm'
     }
 
     twit.search(searchText, searchParams, function (data) {
