@@ -185,7 +185,7 @@ function createPoint(item){
 var splitterWords = ["in", "about"];
 
 var resolveLocation = function (location, callback) {
-    var requestUrl = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&sensor=false";
+    var requestUrl = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&region=uk&sensor=false";
 
     request
     .get(requestUrl)
@@ -193,10 +193,34 @@ var resolveLocation = function (location, callback) {
     .end(function (err, res) {
         var data = JSON.parse(res.text);
         if (data.results && data.results.length > 0) {
+            var name = data.results[0].address_components[0].long_name;
             var location = data.results[0].geometry.location;
-            callback(location);
+
+            callback({
+                latlng: location,
+                name: name
+            });
         }
     });
+};
+
+var connectors = ["a bit", "kinda", "quite", "a little", "very"];
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+var parseMood = function (value) {
+    value = parseInt(value, 10);
+    if (value < -3) value = -3;
+    if (value > 3) value = 3;
+
+    if (value == -3) return ">:(";
+    if (value == -2) return ":'(";
+    if (value == -1) return ":-(";
+    if (value == 0) return ":-|";
+    if (value == 1) return ":-)";
+    if (value == 2) return ":-D";
+    if (value == 3) return "x-D";
 };
 
 var textHandler = function (message, callback) {
@@ -205,12 +229,13 @@ var textHandler = function (message, callback) {
         if (message.indexOf(splitter) > 0) {
 
             var parts = message.split(splitter);
-            var query = parts[0];
+            var query = parts[0].replace("+", " ").trim();
             var location = parts[1];
 
-            resolveLocation(location, function (latLng) {
-                doSearch(query, latLng, function (data) {
-                    var text = data.mood + " - " + data.points.length + " points";
+            resolveLocation(location, function (result) {
+                doSearch(query, result.latlng, function (data) {
+                    var connector = connectors[getRandomInt(0, connectors.length - 1)];
+                    var text = result.name + " is feeling " + connector + " " + parseMood(data.mood) + " about " + query;
                     texter.formatReply(text, callback)
                 });
             });
@@ -224,9 +249,6 @@ function twilioIncoming(req, res, next) {
 
     texter.parseSms(req, function (message) {
         textHandler(message, function (resp) {
-
-            //res.header("Access-Control-Allow-Origin", "*");
-            //res.header("Access-Control-Allow-Headers", "X-Requested-With");
 
             res.writeHead(200, {
                 'Content-Type': 'text/xml'
