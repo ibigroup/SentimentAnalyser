@@ -259,12 +259,17 @@ function twilioIncoming(req, res, next) {
 
     texter.parseSms(req, function (message) {
         textHandler(message, function (resp) {
-            res.writeHead(200, {
-                'Content-Type': 'text/xml'
-            });
-            res.end(resp.toString());
 
-            next();
+            if (process.env.debugOutputNumber) {
+                texter.sendText(process.env.debugOutputNumber, message, function () {
+                    res.writeHead(200, {
+                        'Content-Type': 'text/xml'
+                    });
+                    res.end(resp.toString());
+
+                    next();
+                });
+            }
         });
     });
 }
