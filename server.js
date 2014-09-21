@@ -5,6 +5,7 @@ var twitter = require('twitter');
 var twitterConf = require('./twitterconf');
 var conf = require('./conf');
 var socketio = require('socket.io');
+var texter = require('./texter');
 
 var util = require('util'),
     twitter = require('twitter');
@@ -15,6 +16,8 @@ var twit = new twitter({
     access_token_key: process.env.access_token_key || twitterConf.access_token_key,
     access_token_secret: process.env.access_token_secret || twitterConf.access_token_secret
 });
+
+// texter.sendText("+447970512732", "TITTIES!");
 
 var liveStreamContext,
     io;
@@ -200,12 +203,17 @@ function createPoint(item){
     return point;
 }
 
+function twilioIncoming(req, res, next) {
+    texter.parseSms(req, res);
+}
+
 var server = restify.createServer();
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
 server.get('/search/:searchParamaters/:lat/:lng',getSearchData);
 server.get('/start', start);
 server.get('/stop', stop);
+server.get('/sms', twilioIncoming);
 io = socketio.listen(server.server);
 io.set( 'origins', '*:*' );
 
