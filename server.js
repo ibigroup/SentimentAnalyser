@@ -208,12 +208,14 @@ function twilioIncoming(req, res, next) {
 }
 
 var server = restify.createServer();
+// server.use(restify.bodyParser());
+
 server.get('/q/:content', respond);
 server.get('/test', getTestData);
 server.get('/search/:searchParamaters/:lat/:lng',getSearchData);
 server.get('/start', start);
 server.get('/stop', stop);
-server.get('/sms', twilioIncoming);
+server.post('/sms', twilioIncoming);
 io = socketio.listen(server.server);
 io.set( 'origins', '*:*' );
 
