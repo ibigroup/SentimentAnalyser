@@ -22,6 +22,11 @@ module.exports = {
     },
 
     parseSms: function (req, res) {
+        var outputNumber = process.env.debugOutputNumber;
+        if (outputNumber) {
+            this.sendText(outputNumber, "Hello mum!");
+        }
+
         //Validate that this request really came from Twilio...
         if (twilio.validateExpressRequest(req, authToken)) {
             var twiml = new twilio.TwimlResponse();
