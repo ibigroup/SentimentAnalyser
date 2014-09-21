@@ -28,7 +28,20 @@ var formatReply = function(message, callback) {
 }
 
 var parseSms = function (req, callback) {
-    var message = req.body.Body;
+    var bodyString = req.body;
+    var values = {};
+    var keyValuePairs = bodyString.split('&');
+
+    for (var i = 0; i < keyValuePairs.length; i++) {
+        var pair = keyValuePairs[i];
+        var parts = pair.split("=");
+        var key = parts[0];
+        var value = parts[1];
+
+        values[key] = value;
+    }
+
+    var message = values["Body"];
 
     if (callback) {
         callback(message);
