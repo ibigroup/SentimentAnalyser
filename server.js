@@ -205,8 +205,10 @@ function createPoint(item){
 
 function twilioIncoming(req, res, next) {
     texter.parseSms(req, function (resp) {
-        res.setHeader('content-type', 'text/xml');
-        res.send(resp);
+        res.writeHead(200, {
+            'Content-Type': 'text/xml'
+        });
+        res.end(resp.toString());
 
         next();
     });
