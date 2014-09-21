@@ -7,42 +7,51 @@ var outgoingNumber = process.env.twilioNumber || twilioConf.number;
 
 var client = twilio(accountSid, authToken);
 
-module.exports = {
 
-    sendText: function (number, content, callback) {
-        client.messages.create({
-            body: content,
-            to: number,
-            from: outgoingNumber
-        }, function (err, message) {
-            if (callback) {
-                callback(message);
-            }
-        });
-    },
-
-    parseSms: function (req, res) {
-        var outputNumber = process.env.debugOutputNumber;
-        if (outputNumber) {
-            this.sendText(outputNumber, "Hello mum!");
+var sendText = function (number, content, callback) {
+    client.messages.create({
+        body: content,
+        to: number,
+        from: outgoingNumber
+    }, function (err, message) {
+        if (callback) {
+            callback(message);
         }
+    });
+};
 
-        //Validate that this request really came from Twilio...
-        if (twilio.validateExpressRequest(req, authToken)) {
-            var twiml = new twilio.TwimlResponse();
-            twiml.say('Hi!  Thanks for checking out my app!');
+var parseSms = function (req, res) {
+    var outputNumber = process.env.debugOutputNumber;
 
-            res.type('text/xml');
-            res.send(twiml.toString());
-        }
-        else {
-            // res.send('you are not twilio.  Buzz off.');
-            var twiml = new twilio.TwimlResponse();
-            twiml.say('Not recongised.');
+    //Validate that this request really came from Twilio...
+    if (twilio.validateExpressRequest(req, authToken)) {
+        var twiml = new twilio.TwimlResponse();
+        twiml.say('Hi!  Thanks for checking out my app!');
 
-            res.type('text/xml');
-            res.send(twiml.toString());
-        }
+        
+    if (outputNumber) {
+        sendText(outputNumber, "Hello mum success!");
     }
 
+        res.type('text/xml');
+        res.send(twiml.toString());
+    }
+    else {
+        // res.send('you are not twilio.  Buzz off.');
+        var twiml = new twilio.TwimlResponse();
+        twiml.say('Not recongised.');
+
+        
+    if (outputNumber) {
+        sendText(outputNumber, "Hello mum fail!");
+    }
+
+        res.type('text/xml');
+        res.send(twiml.toString());
+    }
+};
+
+module.exports = {
+    sendText: sendText,
+    parseSms: parseSms
 };
