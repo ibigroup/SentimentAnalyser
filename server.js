@@ -18,8 +18,6 @@ var twit = new twitter({
     access_token_secret: process.env.access_token_secret || twitterConf.access_token_secret
 });
 
-// texter.sendText("+447970512732", "TITTIES!");
-
 var liveStreamContext,
     io;
 
@@ -109,7 +107,7 @@ function doSearch(searchText, latLng, callback) {
      };
 
     if (latLng) {
-         searchParams.geocode = latLng.lat + ',' + latLng.lng + ',2km'
+         searchParams.geocode = latLng.lat + ',' + latLng.lng + ',5km'
     }
 
     twit.search(searchText, searchParams, function (data) {
