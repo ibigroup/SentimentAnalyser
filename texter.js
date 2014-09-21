@@ -1,6 +1,11 @@
 var twilioConf = require('./twilioconf');
 var twilio = require('twilio');
-var client = twilio(process.env.twilioAccountSid || twilioConf.accountSid, process.env.twilioAuthToken || twilioConf.authToken);
+
+var accountSid = process.env.twilioAccountSid || twilioConf.accountSid;
+var authToken = process.env.twilioAuthToken || twilioConf.authToken;
+var outgoingNumber = process.env.twilioNumber || twilioConf.number;
+
+var client = twilio(accountSid, authToken);
 
 module.exports = {
 
@@ -8,7 +13,7 @@ module.exports = {
         client.messages.create({
             body: content,
             to: number,
-            from: process.env.twilioNumber || twilioConf.number
+            from: outgoingNumber
         }, function (err, message) {
             if (callback) {
                 callback(message);
@@ -18,7 +23,7 @@ module.exports = {
 
     parseSms: function (req, res) {
         //Validate that this request really came from Twilio...
-        if (twilio.validateExpressRequest(req, twilioConf.authToken)) {
+        if (twilio.validateExpressRequest(req, authToken)) {
             var twiml = new twilio.TwimlResponse();
 
             twiml.say('Hi!  Thanks for checking out my app!');
