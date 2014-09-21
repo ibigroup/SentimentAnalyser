@@ -143,51 +143,70 @@ function getTestData(req, res, next) {
     res.send(model);
 }
 
-function getSearchData(req, res, next){
-     var dataPoints = [];
-     var searchText = req.params.searchParamaters;
-
+function doSearch(searchText, latLng, callback) {
      var searchParams = {
          count: 100
      };
 
+    if (latLng) {
+         searchParams.geocode = latLng.lat + ',' + latLng.lng + ',2km'
+    }
+
+    twit.search(searchText, searchParams, function (data) {
+        var totalMood = 0,
+        dataPoints = [],
+        distribution = {};
+
+        if (data.statuses) {
+            for (var i = 0; i < data.statuses.length; i++) {
+                var item = data.statuses[i];
+
+                var point = createPoint(item);
+                if (!point.loc && latLng.lat && latLng.lng) {
+                    point.loc = [parseFloat(latLng.lat), parseFloat(latLng.lng)];
+                }
+
+                if (point.loc) {
+                    dataPoints.push(point);
+                    totalMood += point.mood;
+
+                    var valueText = "" + point.mood;
+                    distribution[valueText] = distribution[valueText] || 0;
+                    distribution[valueText] += 1;
+                }
+            };
+        }
+
+        var averageMood = dataPoints.length > 0 
+            ? totalMood / dataPoints.length 
+            : 0;
+
+        var model = {
+            mood: averageMood,
+            distribution: distribution,
+            points: dataPoints
+        };
+
+        callback(model);
+    });
+};
+
+function getSearchData(req, res, next){
+     var searchText = req.params.searchParamaters;
+     var latLng = null;
+
      if (req.params.lat && req.params.lng) {
-         searchParams.geocode = req.params.lat + ',' + req.params.lng + ',2km'
+         latLng = {
+             lat: req.params.lat,
+             lng: req.params.lng
+         };
      }
 
-     twit.search(searchText, searchParams, function (data) {
-         var totalMood = 0,
-         distribution = {};
-
-         for (var i = 0; i < data.statuses.length; i++) {
-             var item = data.statuses[i];
-
-             var point = createPoint(item);
-             if (!point.loc && req.params.lat && req.params.lng) {
-                 point.loc = [parseFloat(req.params.lat), parseFloat(req.params.lng)];
-             }
-
-             if (point.loc) {
-                 dataPoints.push(point);
-                 totalMood += point.mood;
-
-                 var valueText = "" + point.mood;
-                 distribution[valueText] = distribution[valueText] || 0;
-                 distribution[valueText] += 1;
-             }
-         };
-
-         var averageMood = totalMood / dataPoints.length;
-         var model = {
-             mood: averageMood,
-             distribution: distribution,
-             points: dataPoints
-         };
-         
+     doSearch(searchText, latLng, function (model) {
          res.header("Access-Control-Allow-Origin", "*");
          res.header("Access-Control-Allow-Headers", "X-Requested-With");
          res.send(model);
-     })    
+     });
 }
 
 function createPoint(item){
@@ -203,14 +222,50 @@ function createPoint(item){
     return point;
 }
 
-function twilioIncoming(req, res, next) {
-    texter.parseSms(req, function (resp) {
-        res.writeHead(200, {
-            'Content-Type': 'text/xml'
-        });
-        res.end(resp.toString());
+var splitterWords = ["in", "about"];
 
-        next();
+var resolveLocation = function (location, callback) {
+    // var requestUrl = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&sensor=false";
+    var latLng = {
+        lat: 52.48624299999999,
+        lng: -1.890401
+    };
+
+    callback(latLng);
+};
+
+var textHandler = function (message, callback) {
+    for (var i = 0; i <= splitterWords.length; i++) {
+        var splitter = splitterWords[i];
+        if (message.indexOf(splitter) > 0) {
+
+            var parts = message.split(splitter);
+            var query = parts[0];
+            var location = parts[1];
+
+            resolveLocation(location, function (latLng) {
+                doSearch(query, latLng, function (data) {
+                    var text = data.mood + " - " + data.points.length + " points";
+                    texter.formatReply(text, callback)
+                });
+            });
+
+            return;
+        }
+    }
+};
+
+function twilioIncoming(req, res, next) {
+
+    texter.parseSms(req, function (message) {
+        textHandler(message, function (resp) {
+            res.writeHead(200, {
+                'Content-Type': 'text/xml'
+            });
+            res.end(resp.toString());
+
+            next();
+        });
     });
 }
 

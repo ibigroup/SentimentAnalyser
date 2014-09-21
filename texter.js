@@ -20,16 +20,25 @@ var sendText = function (number, content, callback) {
     });
 };
 
-var parseSms = function (req, callback) {
+var formatReply = function(message, callback) {
     var resp = new twilio.TwimlResponse();
-    resp.message('m:' + req.body);
+    resp.message(message);
 
     if (callback) {
         callback(resp);
-    }    
+    }
+}
+
+var parseSms = function (req, callback) {
+    var message = req.body.Body;
+
+    if (callback) {
+        callback(message);
+    }
 };
 
 module.exports = {
     sendText: sendText,
-    parseSms: parseSms
+    parseSms: parseSms,
+    formatReply: formatReply
 };
