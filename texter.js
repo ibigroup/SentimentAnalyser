@@ -5,10 +5,8 @@ var accountSid = process.env.twilioAccountSid || twilioConf.accountSid;
 var authToken = process.env.twilioAuthToken || twilioConf.authToken;
 var outgoingNumber = process.env.twilioNumber || twilioConf.number;
 
-var client = twilio(accountSid, authToken);
-
-
 var sendText = function (number, content, callback) {
+    var client = twilio(accountSid, authToken);
     client.messages.create({
         body: content,
         to: number,
