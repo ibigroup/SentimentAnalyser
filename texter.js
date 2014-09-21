@@ -25,7 +25,7 @@ var parseSms = function (req, res) {
     resp.say({ voice: 'woman' }, 'ahoy hoy! Testing Twilio and node.js');
 
     res.setHeader('content-type', 'text/xml');
-    res.send(resp.toString());
+    res.send(resp);
 };
 
 module.exports = {
