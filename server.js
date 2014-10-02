@@ -93,9 +93,6 @@ function stop(req, res, next) {
 function respond(req, res, next) {
     var text = cleanContent(req.params.content);
     var result = sentiment(text);
-
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
     res.send(formatResponse(result));
 
     next();
@@ -161,8 +158,6 @@ function getSearchData(req, res, next){
      }
 
      doSearch(searchText, latLng, function (model) {
-         res.header("Access-Control-Allow-Origin", "*");
-         res.header("Access-Control-Allow-Headers", "X-Requested-With");
          res.send(model);
      });
 }
@@ -261,6 +256,7 @@ function twilioIncoming(req, res, next) {
 }
 
 var server = restify.createServer();
+server.use(restify.CORS());
 server.use(restify.bodyParser());
 
 server.get('/q/:content', respond);
